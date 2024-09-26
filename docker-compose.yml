@@ -1,0 +1,52 @@
+services:
+  users-service:
+    build:
+      context: ./users-service
+      dockerfile: Dockerfile
+    container_name: users-service
+    environment:
+      - DATABASE_URL=mysql://root@db:3306/testtask
+    volumes:
+      - ./users-service:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - message-broker
+
+  notifications-service:
+    build:
+      context: ./notifications-service
+      dockerfile: Dockerfile
+    container_name: notifications-service
+    environment:
+      - DATABASE_URL=mysql://root@db:3306/testtask
+    volumes:
+      - ./notifications-service:/app
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+      - message-broker
+
+  db:
+    image: mysql:5.7
+    container_name: symfony_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_DATABASE: testtask
+      MYSQL_USER: root
+      MYSQL_PASSWORD: ""
+    ports:
+      - "3307:3306" # Note: You should map the correct port
+    volumes:
+      - db_data:/var/lib/mysql
+
+  message-broker:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  db_data:
